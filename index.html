@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Белые круги на чёрном фоне · Высокое качество</title>
+    <title>White Circles on Black · High Quality</title>
     <style>
         * {
             margin: 0;
@@ -90,7 +90,7 @@
             border: 1px solid rgba(255,255,255,0.3);
         }
 
-        /* Только на телефонах в landscape скрываем элементы */
+        /* Hide UI on phones in landscape mode only */
         @media (max-width: 932px) and (orientation: landscape) {
             .ui-overlay {
                 display: none;
@@ -103,11 +103,11 @@
 </head>
 <body>
     <canvas id="canvas"></canvas>
-    <div class="status" id="statusMsg">Круг 1 — рисуется</div>
+    <div class="status" id="statusMsg">Circle 1 — drawing</div>
     <div class="ui-overlay">
-        <div>🎯 Кругов: <span id="circleCounter">1</span></div>
-        <button id="restartButton">↺ Начать заново</button>
-        <button id="soundToggle" class="active">🔊 Эпичный звук</button>
+        <div>🎯 Circles: <span id="circleCounter">1</span></div>
+        <button id="restartButton">↺ Restart</button>
+        <button id="soundToggle" class="active">🔊 Epic Sound</button>
     </div>
 
     <script>
@@ -118,7 +118,7 @@
             const statusEl = document.getElementById('statusMsg');
             const soundToggle = document.getElementById('soundToggle');
 
-            // ----- НАСТРОЙКИ -----
+            // ----- SETTINGS -----
             const MIN_RADIUS = 5;
             const RADIUS_STEP = 4.5;
             const DRAW_DURATION = 900;
@@ -140,7 +140,7 @@
             let isRunning = true;
             let lastTimestamp = 0;
 
-            // ----- АУДИО -----
+            // ----- AUDIO -----
             let audioCtx = null;
             let soundEnabled = true;
             let audioUnlocked = false;
@@ -219,10 +219,10 @@
 
             function updateSoundButton() {
                 if (soundEnabled) {
-                    soundToggle.textContent = '🔊 Эпичный звук';
+                    soundToggle.textContent = '🔊 Epic Sound';
                     soundToggle.classList.add('active');
                 } else {
-                    soundToggle.textContent = '🔇 Без звука';
+                    soundToggle.textContent = '🔇 Muted';
                     soundToggle.classList.remove('active');
                 }
             }
@@ -316,7 +316,7 @@
                 moveTarget = { x: center.x + currentRadius, y: center.y };
                 moveStartTime = performance.now();
                 cursorState = 'moving';
-                statusEl.textContent = `Круг ${circleCount + 1} — движется`;
+                statusEl.textContent = `Circle ${circleCount + 1} — moving`;
             }
 
             function startDrawingNextCircle() {
@@ -328,7 +328,7 @@
                 };
                 cursorState = 'drawing';
                 createEpicSweep(80 + currentRadius * 0.5, 300 + currentRadius * 1.5, DRAW_DURATION / 1000);
-                statusEl.textContent = `Круг ${circleCount + 1} — рисуется (r=${Math.round(currentRadius)})`;
+                statusEl.textContent = `Circle ${circleCount + 1} — drawing (r=${Math.round(currentRadius)})`;
             }
 
             function animationLoop(timestamp) {
@@ -376,7 +376,7 @@
                 const now = performance.now();
                 drawingCircle = { radius: currentRadius, angle: 0, startTime: now };
                 createEpicSweep(80, 350, DRAW_DURATION / 1000);
-                statusEl.textContent = `Круг 1 — рисуется (r=${Math.round(currentRadius)})`;
+                statusEl.textContent = `Circle 1 — drawing (r=${Math.round(currentRadius)})`;
                 counterEl.textContent = '1';
                 if (soundEnabled && audioCtx) startDrone();
                 animationId = requestAnimationFrame(animationLoop);
@@ -384,7 +384,7 @@
 
             restart();
             document.getElementById('restartButton').addEventListener('click', restart);
-            console.log('⚪ Белые круги на чёрном фоне. Плавность до 720 сегментов.');
+            console.log('⚪ White circles on black. Smoothness up to 720 segments.');
         })();
     </script>
 </body>
