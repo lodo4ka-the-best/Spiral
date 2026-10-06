@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Белая спираль на чёрном фоне · Настройка параметров</title>
+    <title>White Spiral on Black · Settings Panel</title>
     <style>
         * {
             margin: 0;
@@ -90,7 +90,7 @@
             border: 1px solid rgba(255,255,255,0.3);
         }
 
-        /* Стили для панели настроек */
+        /* Settings panel styles */
         .settings-panel {
             position: fixed;
             top: 50%;
@@ -182,7 +182,7 @@
             }
         }
 
-        /* Только на телефонах в landscape скрываем элементы */
+        /* Hide UI on phones in landscape mode only */
         @media (max-width: 932px) and (orientation: landscape) {
             .ui-overlay {
                 display: none;
@@ -201,34 +201,34 @@
 </head>
 <body>
     <canvas id="canvas"></canvas>
-    <div class="status" id="statusMsg">Спираль — виток 0, радиус 0px</div>
-    <button class="toggle-settings" id="toggleSettings">⚙ Настройки</button>
+    <div class="status" id="statusMsg">Spiral — revolution 0, radius 0px</div>
+    <button class="toggle-settings" id="toggleSettings">⚙ Settings</button>
 
     <div class="settings-panel" id="settingsPanel">
-        <h3>⚙ Параметры спирали</h3>
+        <h3>⚙ Spiral Parameters</h3>
         <div class="setting-group">
-            <label>Начальный радиус: <span class="setting-value" id="startRadiusValue">0</span> px</label>
+            <label>Start radius: <span class="setting-value" id="startRadiusValue">0</span> px</label>
             <input type="range" id="startRadius" min="0" max="50" value="0" step="1">
         </div>
         <div class="setting-group">
-            <label>Рост радиуса: <span class="setting-value" id="radiusGrowthValue">10</span> px/виток</label>
+            <label>Radius growth: <span class="setting-value" id="radiusGrowthValue">10</span> px/rev</label>
             <input type="range" id="radiusGrowth" min="1" max="50" value="10" step="0.5">
         </div>
         <div class="setting-group">
-            <label>Скорость рисования: <span class="setting-value" id="drawSpeedValue">0.04</span> рад/кадр</label>
+            <label>Draw speed: <span class="setting-value" id="drawSpeedValue">0.04</span> rad/frame</label>
             <input type="range" id="drawSpeed" min="0.01" max="0.2" value="0.04" step="0.01">
         </div>
         <div class="setting-group">
-            <label>Толщина линии: <span class="setting-value" id="lineWidthValue">3</span> px</label>
+            <label>Line width: <span class="setting-value" id="lineWidthValue">3</span> px</label>
             <input type="range" id="lineWidth" min="1" max="8" value="3" step="0.5">
         </div>
-        <button id="applySettings" style="width: 100%; margin-top: 10px;">🔄 Применить и перезапустить</button>
+        <button id="applySettings" style="width: 100%; margin-top: 10px;">🔄 Apply & Restart</button>
     </div>
 
     <div class="ui-overlay">
-        <div>🌀 Витков: <span id="spiralCounter">0</span></div>
-        <div>📏 Радиус: <span id="radiusDisplay">0</span> px</div>
-        <button id="restartButton">↺ Начать заново</button>
+        <div>🌀 Revolutions: <span id="spiralCounter">0</span></div>
+        <div>📏 Radius: <span id="radiusDisplay">0</span> px</div>
+        <button id="restartButton">↺ Restart</button>
     </div>
 
     <script>
@@ -363,7 +363,7 @@
                         counterEl.textContent = totalRevolutions;
                     }
                     radiusDisplayEl.textContent = Math.round(currentRadius);
-                    statusEl.textContent = `Спираль — виток ${totalRevolutions}, радиус ${Math.round(currentRadius)}px`;
+                    statusEl.textContent = `Spiral — revolution ${totalRevolutions}, radius ${Math.round(currentRadius)}px`;
                     addSpiralPoint(currentAngle, currentRadius);
                     const center = getCenter();
                     cursor.x = center.x + currentRadius * Math.cos(currentAngle);
@@ -386,14 +386,14 @@
                 addSpiralPoint(0, START_RADIUS);
                 counterEl.textContent = '0';
                 radiusDisplayEl.textContent = Math.round(START_RADIUS);
-                statusEl.textContent = `Спираль — виток 0, радиус ${Math.round(START_RADIUS)}px`;
+                statusEl.textContent = `Spiral — revolution 0, radius ${Math.round(START_RADIUS)}px`;
                 animationId = requestAnimationFrame(animationLoop);
             }
 
             updateDisplayValues();
             restart();
             document.getElementById('restartButton').addEventListener('click', restart);
-            console.log('🌀 Белая спираль на чёрном фоне. Настраиваемые параметры.');
+            console.log('🌀 White spiral on black. Configurable parameters.');
         })();
     </script>
 </body>
