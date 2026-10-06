@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Белая спираль на чёрном фоне · Высокое качество</title>
+    <title>White Spiral on Black · Settings Panel</title>
     <style>
         * {
             margin: 0;
@@ -90,7 +90,103 @@
             border: 1px solid rgba(255,255,255,0.3);
         }
 
-        /* Только на телефонах в landscape скрываем элементы */
+        /* Settings panel styles */
+        .settings-panel {
+            position: fixed;
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(15px);
+            padding: 20px;
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.3);
+            z-index: 30;
+            min-width: 280px;
+            color: #ffffff;
+        }
+        .settings-panel h3 {
+            margin: 0 0 20px 0;
+            color: #ffd966;
+            font-size: 1.2rem;
+            text-align: center;
+        }
+        .setting-group {
+            margin-bottom: 18px;
+        }
+        .setting-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 0.9rem;
+            color: #cccccc;
+        }
+        .setting-group input[type="range"] {
+            width: 100%;
+            height: 6px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        .setting-group input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #ffffff;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid #ffd966;
+        }
+        .setting-value {
+            display: inline-block;
+            background: rgba(255,255,255,0.1);
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            color: #ffd966;
+            margin-left: 8px;
+            min-width: 50px;
+            text-align: center;
+        }
+        .toggle-settings {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 35;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: #ffffff;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        .toggle-settings:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        .settings-panel.hidden {
+            display: none;
+        }
+        #applySettings {
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .settings-panel {
+                right: 10px;
+                min-width: 250px;
+                padding: 15px;
+            }
+            .ui-overlay {
+                padding: 10px 20px;
+                gap: 10px;
+                font-size: 0.9rem;
+            }
+        }
+
+        /* Hide UI on phones in landscape mode only */
         @media (max-width: 932px) and (orientation: landscape) {
             .ui-overlay {
                 display: none;
@@ -98,16 +194,45 @@
             .status {
                 display: none;
             }
+            .toggle-settings {
+                display: none;
+            }
+            .settings-panel {
+                display: none;
+            }
         }
     </style>
 </head>
 <body>
     <canvas id="canvas"></canvas>
-    <div class="status" id="statusMsg">Спираль — рисуется</div>
+    <div class="status" id="statusMsg">Spiral — revolution 0, radius 0px</div>
+    <button class="toggle-settings" id="toggleSettings">⚙ Settings</button>
+
+    <div class="settings-panel" id="settingsPanel">
+        <h3>⚙ Spiral Parameters</h3>
+        <div class="setting-group">
+            <label>Start radius: <span class="setting-value" id="startRadiusValue">0</span> px</label>
+            <input type="range" id="startRadius" min="0" max="50" value="0" step="1">
+        </div>
+        <div class="setting-group">
+            <label>Radius growth: <span class="setting-value" id="radiusGrowthValue">10</span> px/rev</label>
+            <input type="range" id="radiusGrowth" min="1" max="50" value="10" step="0.5">
+        </div>
+        <div class="setting-group">
+            <label>Draw speed: <span class="setting-value" id="drawSpeedValue">0.04</span> rad/frame</label>
+            <input type="range" id="drawSpeed" min="0.01" max="0.2" value="0.04" step="0.01">
+        </div>
+        <div class="setting-group">
+            <label>Line width: <span class="setting-value" id="lineWidthValue">3</span> px</label>
+            <input type="range" id="lineWidth" min="1" max="8" value="3" step="0.5">
+        </div>
+        <button id="applySettings">🔄 Apply & Restart</button>
+    </div>
+
     <div class="ui-overlay">
-        <div>🌀 Витков: <span id="spiralCounter">0</span></div>
-        <button id="restartButton">↺ Начать заново</button>
-        <button id="soundToggle" class="active">🔊 Эпичный звук</button>
+        <div>🌀 Revolutions: <span id="spiralCounter">0</span></div>
+        <div>📏 Radius: <span id="radiusDisplay">0</span> px</div>
+        <button id="restartButton">↺ Restart</button>
     </div>
 
     <script>
@@ -115,14 +240,25 @@
             const canvas = document.getElementById('canvas');
             const ctx = canvas.getContext('2d');
             const counterEl = document.getElementById('spiralCounter');
+            const radiusDisplayEl = document.getElementById('radiusDisplay');
             const statusEl = document.getElementById('statusMsg');
-            const soundToggle = document.getElementById('soundToggle');
 
-            // ----- НАСТРОЙКИ СПИРАЛИ -----
-            const START_RADIUS = 5;
-            const RADIUS_GROWTH = 5;
-            const DRAW_SPEED = 1;
-            const MAX_SEGMENTS = 720;
+            const settingsPanel = document.getElementById('settingsPanel');
+            const toggleSettingsBtn = document.getElementById('toggleSettings');
+            const startRadiusInput = document.getElementById('startRadius');
+            const radiusGrowthInput = document.getElementById('radiusGrowth');
+            const drawSpeedInput = document.getElementById('drawSpeed');
+            const lineWidthInput = document.getElementById('lineWidth');
+
+            const startRadiusValueEl = document.getElementById('startRadiusValue');
+            const radiusGrowthValueEl = document.getElementById('radiusGrowthValue');
+            const drawSpeedValueEl = document.getElementById('drawSpeedValue');
+            const lineWidthValueEl = document.getElementById('lineWidthValue');
+
+            let START_RADIUS = 0;
+            let RADIUS_GROWTH = 10;
+            let DRAW_SPEED = 0.04;
+            let LINE_WIDTH = 3;
 
             let currentAngle = 0;
             let currentRadius = START_RADIUS;
@@ -133,125 +269,30 @@
             let isRunning = true;
             let lastTimestamp = 0;
 
-            // ----- АУДИО -----
-            let audioCtx = null;
-            let soundEnabled = true;
-            let audioUnlocked = false;
-            let droneOsc = null;
-            let droneGain = null;
+            toggleSettingsBtn.addEventListener('click', () => {
+                settingsPanel.classList.toggle('hidden');
+            });
 
-            function initAudio() {
-                if (audioCtx) return;
-                try {
-                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                    audioUnlocked = true;
-                    if (soundEnabled) startDrone();
-                } catch(e) {
-                    soundEnabled = false;
-                    updateSoundButton();
-                }
+            function updateDisplayValues() {
+                startRadiusValueEl.textContent = startRadiusInput.value;
+                radiusGrowthValueEl.textContent = radiusGrowthInput.value;
+                drawSpeedValueEl.textContent = drawSpeedInput.value;
+                lineWidthValueEl.textContent = lineWidthInput.value;
             }
 
-            function startDrone() {
-                if (!audioCtx || !soundEnabled) return;
-                if (droneOsc) { try { droneOsc.stop(); } catch(e){} }
-                const now = audioCtx.currentTime;
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                droneGain = gain;
-                osc.type = 'sine';
-                osc.frequency.value = 55;
-                gain.gain.setValueAtTime(0.03, now);
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start();
-                droneOsc = osc;
-            }
+            startRadiusInput.addEventListener('input', updateDisplayValues);
+            radiusGrowthInput.addEventListener('input', updateDisplayValues);
+            drawSpeedInput.addEventListener('input', updateDisplayValues);
+            lineWidthInput.addEventListener('input', updateDisplayValues);
 
-            function stopDrone() {
-                if (droneOsc) { try { droneOsc.stop(); } catch(e){}; droneOsc = null; }
-            }
-
-            function updateDroneFrequency(radius) {
-                if (droneOsc && droneGain && soundEnabled) {
-                    const freq = 40 + (radius * 0.15);
-                    droneOsc.frequency.setValueAtTime(Math.min(freq, 300), audioCtx.currentTime);
-                    droneGain.gain.setValueAtTime(0.02 + (radius * 0.0001), audioCtx.currentTime);
-                }
-            }
-
-            function createEpicTick(radius) {
-                if (!audioCtx || !soundEnabled) return;
-                const now = audioCtx.currentTime;
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'triangle';
-                const baseFreq = 200 + (radius * 0.1);
-                osc.frequency.setValueAtTime(baseFreq, now);
-                gain.gain.setValueAtTime(0.15, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start(now);
-                osc.stop(now + 0.3);
-            }
-
-            function toggleSound() {
-                if (!audioUnlocked) initAudio();
-                soundEnabled = !soundEnabled;
-                updateSoundButton();
-                if (soundEnabled) { startDrone(); } else { stopDrone(); }
-            }
-
-            function updateSoundButton() {
-                if (soundEnabled) {
-                    soundToggle.textContent = '🔊 Эпичный звук';
-                    soundToggle.classList.add('active');
-                } else {
-                    soundToggle.textContent = '🔇 Без звука';
-                    soundToggle.classList.remove('active');
-                }
-            }
-
-            // Автозапуск звука
-            function autoStartAudio() {
-                if (!audioUnlocked) {
-                    initAudio();
-                }
-                if (audioCtx && audioCtx.state === 'suspended') {
-                    audioCtx.resume().then(() => {
-                        if (soundEnabled) startDrone();
-                    });
-                } else if (audioCtx && audioCtx.state === 'running') {
-                    if (soundEnabled) startDrone();
-                }
-            }
-
-            autoStartAudio();
-
-            document.addEventListener('click', () => {
-                if (!audioUnlocked) initAudio();
-                if (audioCtx && audioCtx.state === 'suspended') {
-                    audioCtx.resume().then(() => {
-                        if (soundEnabled) startDrone();
-                    });
-                }
-            }, { once: false });
-
-            document.addEventListener('touchstart', () => {
-                if (!audioUnlocked) initAudio();
-                if (audioCtx && audioCtx.state === 'suspended') {
-                    audioCtx.resume().then(() => {
-                        if (soundEnabled) startDrone();
-                    });
-                }
-            }, { once: false });
-
-            setTimeout(autoStartAudio, 500);
-
-            soundToggle.addEventListener('click', (e) => {
-                e.stopPropagation();
-                toggleSound();
+            document.getElementById('applySettings').addEventListener('click', () => {
+                START_RADIUS = parseFloat(startRadiusInput.value);
+                RADIUS_GROWTH = parseFloat(radiusGrowthInput.value);
+                DRAW_SPEED = parseFloat(drawSpeedInput.value);
+                LINE_WIDTH = parseFloat(lineWidthInput.value);
+                updateDisplayValues();
+                restart();
+                settingsPanel.classList.add('hidden');
             });
 
             function resizeCanvas() {
@@ -270,7 +311,7 @@
                 if (spiralPoints.length < 2) return;
                 ctx.beginPath();
                 ctx.strokeStyle = '#ffffff';
-                ctx.lineWidth = Math.max(2.5, 3.5);
+                ctx.lineWidth = LINE_WIDTH;
                 ctx.lineCap = 'round';
                 ctx.lineJoin = 'round';
                 ctx.moveTo(spiralPoints[0].x, spiralPoints[0].y);
@@ -281,7 +322,7 @@
                 ctx.shadowColor = '#ffffff';
                 ctx.shadowBlur = 15;
                 ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-                ctx.lineWidth = Math.max(4, 6);
+                ctx.lineWidth = LINE_WIDTH * 1.5;
                 ctx.stroke();
                 ctx.shadowBlur = 0;
                 if (cursor.x && cursor.y) {
@@ -324,12 +365,9 @@
                     if (newRevolutions > prevRevolutions) {
                         totalRevolutions = newRevolutions;
                         counterEl.textContent = totalRevolutions;
-                        createEpicTick(currentRadius);
-                        statusEl.textContent = `Спираль — виток ${totalRevolutions} (r=${Math.round(currentRadius)})`;
                     }
-                    if (Math.floor(currentAngle * 10) % 10 === 0) {
-                        updateDroneFrequency(currentRadius);
-                    }
+                    radiusDisplayEl.textContent = Math.round(currentRadius);
+                    statusEl.textContent = `Spiral — revolution ${totalRevolutions}, radius ${Math.round(currentRadius)}px`;
                     addSpiralPoint(currentAngle, currentRadius);
                     const center = getCenter();
                     cursor.x = center.x + currentRadius * Math.cos(currentAngle);
@@ -351,14 +389,15 @@
                 cursor = { x: center.x + START_RADIUS, y: center.y };
                 addSpiralPoint(0, START_RADIUS);
                 counterEl.textContent = '0';
-                statusEl.textContent = `Спираль — начинается (r=${Math.round(START_RADIUS)})`;
-                if (soundEnabled && audioCtx) startDrone();
+                radiusDisplayEl.textContent = Math.round(START_RADIUS);
+                statusEl.textContent = `Spiral — revolution 0, radius ${Math.round(START_RADIUS)}px`;
                 animationId = requestAnimationFrame(animationLoop);
             }
 
+            updateDisplayValues();
             restart();
             document.getElementById('restartButton').addEventListener('click', restart);
-            console.log('🌀 Белая спираль на чёрном фоне. Непрерывное рисование.');
+            console.log('🌀 White spiral on black. Configurable parameters.');
         })();
     </script>
 </body>
